@@ -1,0 +1,53 @@
+name: release
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-24.04
+            target: loongarch64-unknown-linux-gnu
+            code-target: linux-loong64
+    name: build (${{ matrix.target }})
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          repository: tekumara/typos-lsp
+          ref: ${{ github.ref_name }}
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@v1
+        with:
+          toolchain: stable
+          target: ${{ matrix.target }}
+      - uses: Swatinem/rust-cache@v2
+      - name: Install GCC loongarch64 (linux)
+        # TODO: switch to gcc-loongarch64-linux-gnu when available
+        run: sudo apt-get update && sudo apt-get install gcc-14-loongarch64-linux-gnu
+      - name: Build ${{ matrix.target }}
+        run: |
+          export CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_LINKER=loongarch64-linux-gnu-gcc-14
+          cargo build --target ${{ matrix.target }} --release
+      - run: npm ci
+      - name: vsce package
+        shell: bash
+        run: |
+          mkdir -p bundled dist
+          cp target/${{ matrix.target }}/release/typos-lsp* bundled/
+          npx vsce package -o dist/ --target ${{ matrix.code-target }}
+      - name: Archive
+        shell: bash
+        run: |
+          ver=${GITHUB_REF/refs\/*\//}
+          archive="dist/typos-lsp-$ver-${{ matrix.target }}"
+          mkdir -p dist
+          tar czf "${archive}.tar.gz" -C target/${{ matrix.target }}/release typos-lsp
+          ls -al dist/*
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.target }}
+          path: dist
