@@ -37,7 +37,12 @@ jobs:
         run: |
           mkdir -p bundled dist
           cp target/${{ matrix.target }}/release/typos-lsp* bundled/
-          npx vsce package -o dist/ --target ${{ matrix.code-target }}
+          npx vsce package -o dist/
+      - uses: astral-sh/setup-uv@v6
+      - name: Patch vsix
+        run: |
+          cd dist
+          uv run "https://raw.githubusercontent.com/loongcodium/loongcodium-scripts/refs/heads/main/scripts/patch_vsix.py" -t ${{ matrix.code-target }}
       - name: Archive
         shell: bash
         run: |
