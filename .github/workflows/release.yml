@@ -39,6 +39,8 @@ jobs:
           cp target/${{ matrix.target }}/release/typos-lsp* bundled/
           npx vsce package -o dist/
       - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: false
       - name: Patch vsix
         run: |
           cd dist
