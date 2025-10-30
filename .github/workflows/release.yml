@@ -118,12 +118,17 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v4
+      - name: Tag version
+        run: |
+          git tag ${{ needs.determine_version.outputs.release_version }}
+          git push origin ${{ needs.determine_version.outputs.release_version }}
       - uses: actions/download-artifact@v5
       - run: ls -al
       - name: Release
         uses: softprops/action-gh-release@v2
         with:
-          name: ${{ needs.determine_version.outputs.release_version }}
+          tag_name: ${{ needs.determine_version.outputs.release_version }}
           files: |
             ./**/*.vsix
             ./**/*.tar.gz
