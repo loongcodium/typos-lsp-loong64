@@ -78,6 +78,16 @@ jobs:
       - name: Install GCC loongarch64 (linux)
         # TODO: switch to gcc-loongarch64-linux-gnu when available
         run: sudo apt-get update && sudo apt-get install gcc-14-loongarch64-linux-gnu
+      - name: Patch metadata
+        run: |
+          cat package.json | \
+          jq '.displayName="Typos spell checker (loong64)"' | \
+          jq '.description=(.description) + " This version is for LoongArch64 only."' | \
+          jq '.publisher="loong-vsx"' | \
+          jq '.homepage="https://github.com/loongcodium/typos-lsp-loong64"' | \
+          jq '.repository.url="https://github.com/loongcodium/typos-lsp-loong64.git"' | \
+          jq '.bugs.url="https://github.com/loongcodium/typos-lsp-loong64/issues"' \
+          > tmp.json && mv -v tmp.json package.json
       - name: Build ${{ matrix.target }}
         run: |
           export CARGO_TARGET_LOONGARCH64_UNKNOWN_LINUX_GNU_LINKER=loongarch64-linux-gnu-gcc-14
@@ -89,13 +99,6 @@ jobs:
           mkdir -p bundled dist
           cp target/${{ matrix.target }}/release/typos-lsp* bundled/
           npx vsce package -o dist/
-      - uses: astral-sh/setup-uv@v6
-        with:
-          enable-cache: false
-      - name: Patch vsix
-        run: |
-          cd dist
-          uv run "https://raw.githubusercontent.com/loongcodium/loongcodium-scripts/refs/heads/main/scripts/patch_vsix.py" -t ${{ matrix.code-target }}
       - name: Archive
         shell: bash
         run: |
@@ -132,3 +135,10 @@ jobs:
           files: |
             ./**/*.vsix
             ./**/*.tar.gz
+
+      - name: Install ovsx
+        run: npm install --global ovsx
+      - name: Publish extension
+        run: ovsx publish ./**/*.vsix
+        env:
+          OVSX_PAT: ${{ secrets.OVSX_PAT }}
