@@ -83,7 +83,7 @@ jobs:
           cat package.json | \
           jq '.displayName="Typos spell checker (loong64)"' | \
           jq '.description=(.description) + " (This version is for LoongArch64 only)"' | \
-          jq '.version="${{ needs.determine_version.outputs.release_version }}"|ltrimstr("v")' | \
+          jq '.version=("${{ needs.determine_version.outputs.release_version }}"|ltrimstr("v"))' | \
           jq '.publisher="loong-vsx"' | \
           jq '.homepage="https://github.com/loongcodium/typos-lsp-loong64"' | \
           jq '.repository.url="https://github.com/loongcodium/typos-lsp-loong64.git"' | \
