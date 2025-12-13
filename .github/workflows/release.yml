@@ -10,7 +10,7 @@ on:
         required: false
         default: ''
       release_version:
-        description: 'The version to use in release (e.g., v0.1.14-1). If empty, the release workflow will not be triggered.'
+        description: 'The version to use in release (e.g., v0.1.14-0). If empty, the release workflow will not be triggered.'
         required: false
         default: ''
 
@@ -44,7 +44,7 @@ jobs:
               echo "Newer upstream version found: $UPSTREAM_VERSION"
               echo "should_build=true" >> $GITHUB_OUTPUT
               echo "version=$UPSTREAM_VERSION" >> $GITHUB_OUTPUT
-              echo "release_version=$UPSTREAM_VERSION" >> $GITHUB_OUTPUT
+              echo "release_version=$UPSTREAM_VERSION-0" >> $GITHUB_OUTPUT
             else
               echo "No newer upstream version found."
               echo "should_build=false" >> $GITHUB_OUTPUT
